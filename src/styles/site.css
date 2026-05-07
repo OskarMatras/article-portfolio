@@ -184,6 +184,46 @@ button:focus-visible {
   transform: translateY(0.5px);
 }
 
+.card-add-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  min-height: 142px;
+}
+
+.add-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(210, 235, 231, 0.9);
+  color: rgba(45, 122, 107, 0.95);
+  border: 1px solid rgba(61, 155, 138, 0.2);
+}
+
+.add-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.card-add-title {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.card-add-subtitle {
+  color: rgba(44, 26, 14, 0.62);
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 32ch;
+}
+
 .viewer-header {
   display: flex;
   align-items: center;
