@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { listArticles } from '../lib/articles'
+
+const articles = listArticles()
+---
+
+<BaseLayout title="Artikel-portfolio" description="En samling af artikler, analyser og projekter.">
+	<div class="container">
+		<header class="topbar">
+			<div class="brand">
+				<div class="brand-title">Artikel-portfolio</div>
+				<div class="brand-subtitle">
+					Klik på en artikel for at læse den fulde version. Du kan tilføje flere artikler ved at lægge filer i{' '}
+					<strong>public/articles</strong>.
+				</div>
+			</div>
+			<div class="badge">{articles.length} artikler</div>
+		</header>
+
+		<main class="grid">
+			{articles.map((a) => (
+				<article class="card">
+					<a class="card-link" href={a.href}>
+						<div class="card-header">
+							<h2 class="card-title">{a.title}</h2>
+							<div class="card-meta">{a.updatedAt ?? a.kind.toUpperCase()}</div>
+						</div>
+						{a.description && <p class="card-desc">{a.description}</p>}
+						<div class="pill-row">
+							<span class={`pill ${a.kind === 'html' ? 'gold' : ''}`}>{a.kind}</span>
+							<span class="pill">klik for at åbne</span>
+						</div>
+					</a>
+				</article>
+			))}
+		</main>
+	</div>
+</BaseLayout>

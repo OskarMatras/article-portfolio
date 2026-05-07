@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { listArticles, publicAssetUrl, readArticleTextFile, type ArticleEntry } from '../../lib/articles'
+
+export async function getStaticPaths() {
+  const articles = listArticles()
+  return articles.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }))
+}
+
+const { entry } = Astro.props as { entry: ArticleEntry }
+
+const assetUrl = publicAssetUrl(entry)
+
+let markdownHtml: string | undefined
+let textContent: string | undefined
+
+if (entry.kind === 'markdown') {
+  // Lazy import so we only pull it in when needed.
+  const { marked } = await import('marked')
+  const raw = readArticleTextFile(entry)
+  markdownHtml = marked.parse(raw)
+} else if (entry.kind === 'text') {
+  textContent = readArticleTextFile(entry)
+}
+---
+
+<BaseLayout title={entry.title} description={entry.description}>
+  <div class="container">
+    <header class="viewer-header">
+      <a class="back" href="/">← tilbage</a>
+      <div class="badge">{entry.kind}</div>
+    </header>
+
+    <h1 class="viewer-title">{entry.title}</h1>
+
+    {entry.kind === 'html' || entry.kind === 'pdf' ? (
+      <div class="viewer-frame">
+        <iframe src={assetUrl} title={entry.title} />
+      </div>
+    ) : entry.kind === 'image' ? (
+      <div class="viewer-frame">
+        <img src={assetUrl} alt={entry.title} style="width:100%;height:100%;object-fit:contain;display:block;" />
+      </div>
+    ) : entry.kind === 'markdown' ? (
+      <article class="text-article">
+        <div set:html={markdownHtml ?? ''} />
+      </article>
+    ) : entry.kind === 'text' ? (
+      <article class="text-article">
+        <pre>{textContent}</pre>
+      </article>
+    ) : (
+      <article class="text-article">
+        <p>
+          Filtypen kan ikke vises direkte. Åbn den her: <a href={assetUrl}>{entry.fileName}</a>
+        </p>
+      </article>
+    )}
+  </div>
+</BaseLayout>
