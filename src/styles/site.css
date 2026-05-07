@@ -187,27 +187,108 @@ button:focus-visible {
 .card-add-link {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  text-align: center;
+  text-align: left;
   gap: 12px;
   min-height: 142px;
 }
 
-.add-icon {
-  width: 72px;
-  height: 72px;
+.grid-contents {
+  display: contents;
+}
+
+.card-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.add-plus {
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
   display: grid;
   place-items: center;
   background: rgba(210, 235, 231, 0.9);
   color: rgba(45, 122, 107, 0.95);
   border: 1px solid rgba(61, 155, 138, 0.2);
+  cursor: pointer;
 }
 
-.add-icon svg {
-  width: 34px;
-  height: 34px;
+.add-plus svg {
+  width: 22px;
+  height: 22px;
+}
+
+.upload-menu {
+  border-radius: var(--radius-soft);
+  border: 1px solid rgba(212, 187, 144, 0.9);
+  background: rgba(250, 246, 238, 0.92);
+  box-shadow: var(--shadow-soft);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.upload-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 187, 144, 0.7);
+  background: rgba(250, 246, 238, 0.85);
+  color: rgba(44, 26, 14, 0.8);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.upload-action:hover {
+  box-shadow: var(--shadow-soft);
+}
+
+.upload-status {
+  color: rgba(44, 26, 14, 0.62);
+  font-size: 12px;
+  line-height: 1.6;
+  min-height: 20px;
+}
+
+.upload-token-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 187, 144, 0.7);
+  background: rgba(250, 246, 238, 0.85);
+}
+
+.upload-token-label {
+  color: rgba(44, 26, 14, 0.72);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.upload-token {
+  width: 100%;
+  max-width: 220px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 187, 144, 0.9);
+  background: rgba(244, 234, 213, 0.55);
+  color: rgba(44, 26, 14, 0.85);
+  font-size: 13px;
 }
 
 .card-add-title {

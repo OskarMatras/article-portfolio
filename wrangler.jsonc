@@ -10,6 +10,12 @@
     "global_fetch_strictly_public",
     "nodejs_compat"
   ],
+  "r2_buckets": [
+    {
+      "binding": "ARTICLES",
+      "bucket_name": "article-portfolio-articles"
+    }
+  ],
   "assets": {
     "binding": "ASSETS",
     "directory": "dist"

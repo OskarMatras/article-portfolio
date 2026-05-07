@@ -37,28 +37,171 @@ const articles = listArticles()
 				</article>
 			))}
 
+			<div id="remote-articles" class="grid-contents" aria-live="polite"></div>
+
 			<article class="card card-add">
-				<a
-					class="card-link card-add-link"
-					href="https://github.com/OskarMatras/article-portfolio/tree/main/public/articles"
-					target="_blank"
-					rel="noreferrer"
-					aria-label="Tilføj en artikel (upload i public/articles på GitHub)"
-				>
-					<div class="add-icon" aria-hidden="true">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path
-								d="M12 5v14M5 12h14"
+				<div class="card-link card-add-link">
+					<div class="card-add-row">
+						<div>
+							<div class="card-add-title">Tilføj</div>
+							<div class="card-add-subtitle">Upload billede, PDF eller artikel direkte her.</div>
+						</div>
+						<button type="button" class="add-plus" id="addPlus" aria-haspopup="menu" aria-expanded="false">
+							<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+								<path
+									d="M12 5v14M5 12h14"
 								stroke="currentColor"
 								stroke-width="2.5"
 								stroke-linecap="round"
-							/>
-						</svg>
+								/>
+							</svg>
+						</button>
 					</div>
-					<div class="card-add-title">Tilføj artikel</div>
-					<div class="card-add-subtitle">Upload en fil til <strong>public/articles</strong> på GitHub.</div>
-				</a>
+
+					<div class="upload-menu" id="uploadMenu" role="menu" aria-label="Vælg upload-type" hidden>
+						<div class="upload-token-row">
+							<label class="upload-token-label" for="uploadToken">Upload key</label>
+							<input id="uploadToken" class="upload-token" type="password" placeholder="(valgfri)" autocomplete="off" />
+						</div>
+						<button type="button" class="upload-action" data-kind="image" data-accept="image/*" role="menuitem">
+							Billede
+						</button>
+						<button type="button" class="upload-action" data-kind="pdf" data-accept="application/pdf" role="menuitem">
+							PDF
+						</button>
+						<button type="button" class="upload-action" data-kind="html" data-accept=".html,text/html" role="menuitem">
+							HTML artikel
+						</button>
+						<button type="button" class="upload-action" data-kind="markdown" data-accept=".md,text/markdown" role="menuitem">
+							Markdown
+						</button>
+						<button type="button" class="upload-action" data-kind="text" data-accept=".txt,text/plain" role="menuitem">
+							Tekst
+						</button>
+						<button type="button" class="upload-action" data-kind="file" data-accept="" role="menuitem">
+							Alle filer
+						</button>
+					</div>
+
+					<input id="uploadInput" type="file" hidden />
+					<div class="upload-status" id="uploadStatus" role="status" aria-live="polite"></div>
+				</div>
 			</article>
 		</main>
 	</div>
 </BaseLayout>
+
+<script>
+	const plus = document.getElementById('addPlus')
+	const menu = document.getElementById('uploadMenu')
+	const input = document.getElementById('uploadInput')
+	const statusEl = document.getElementById('uploadStatus')
+	const tokenInput = document.getElementById('uploadToken')
+	const remote = document.getElementById('remote-articles')
+
+	const TOKEN_KEY = 'articlePortfolioUploadToken'
+	if (tokenInput) {
+		const saved = localStorage.getItem(TOKEN_KEY)
+		if (saved) tokenInput.value = saved
+		tokenInput.addEventListener('input', () => {
+			localStorage.setItem(TOKEN_KEY, tokenInput.value || '')
+		})
+	}
+
+	let pendingKind = 'file'
+
+	function setStatus(text) {
+		if (!statusEl) return
+		statusEl.textContent = text
+	}
+
+	function setMenuOpen(open) {
+		if (!menu || !plus) return
+		menu.hidden = !open
+		plus.setAttribute('aria-expanded', open ? 'true' : 'false')
+	}
+
+	async function refreshRemoteArticles() {
+		if (!remote) return
+		try {
+			const res = await fetch('/api/articles.json', { cache: 'no-store' })
+			const data = await res.json()
+			if (!data.ok) return
+			remote.innerHTML = ''
+			for (const item of data.items) {
+				const card = document.createElement('article')
+				card.className = 'card'
+				card.innerHTML = `
+					<a class="card-link" href="${item.url}">
+						<div class="card-header">
+							<h2 class="card-title">${item.fileName}</h2>
+							<div class="card-meta">UPLOAD</div>
+						</div>
+						<div class="pill-row">
+							<span class="pill">R2</span>
+							<span class="pill">klik for at åbne</span>
+						</div>
+					</a>
+				`
+				remote.appendChild(card)
+			}
+		} catch {
+			// ignore
+		}
+	}
+
+	if (plus && menu) {
+		plus.addEventListener('click', () => {
+			setMenuOpen(menu.hidden)
+		})
+		document.addEventListener('click', (e) => {
+			if (menu.hidden) return
+			const target = e.target
+			if (!(target instanceof Node)) return
+			if (menu.contains(target) || plus.contains(target)) return
+			setMenuOpen(false)
+		})
+	}
+
+	if (menu && input) {
+		menu.addEventListener('click', (e) => {
+			const btn = e.target && e.target.closest ? e.target.closest('.upload-action') : null
+			if (!btn) return
+			pendingKind = btn.getAttribute('data-kind') || 'file'
+			const accept = btn.getAttribute('data-accept') || ''
+			input.value = ''
+			input.setAttribute('accept', accept)
+			setMenuOpen(false)
+			input.click()
+		})
+
+		input.addEventListener('change', async () => {
+			const file = input.files && input.files[0]
+			if (!file) return
+
+			setStatus('Uploader…')
+			const form = new FormData()
+			form.set('kind', pendingKind)
+			form.set('file', file)
+
+			const headers = {}
+			const token = tokenInput && tokenInput.value ? tokenInput.value.trim() : ''
+			if (token) headers['authorization'] = `Bearer ${token}`
+
+			try {
+				const res = await fetch('/api/upload', { method: 'POST', body: form, headers })
+				const data = await res.json()
+				if (!data.ok) {
+					setStatus(data.error || 'Upload fejlede')
+					return
+				}
+				setStatus('Upload færdig!')
+				await refreshRemoteArticles()
+			} catch {
+				setStatus('Upload fejlede')
+			}
+		})
+	}
+
+	refreshRemoteArticles()
+</script>
